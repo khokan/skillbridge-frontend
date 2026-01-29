@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 
 export default function HomePage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-14">
+    <div className="mx-auto  px-4 py-14">
       <div className="grid items-center gap-10 md:grid-cols-2">
         <div>
           <h1 className="text-4xl font-semibold leading-tight md:text-5xl">

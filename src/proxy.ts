@@ -1,17 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-
 import { userService } from "./services/user.service";
 import { Roles } from "./constants/roles";
 
 
 export async function proxy(request: NextRequest) {
    const pathname = request.url;
-  console.log("Proxy middleware:", request);
 
   let isAuthenticated = false;
 
   const { data } = await userService.getSession();
-  console.log("Session data in middleware:", data);
+  console.log("Middleware session data:", data , request.url);
+
 
   if (data) {
     isAuthenticated = true;
@@ -22,21 +21,20 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  //* User is authenticated and role = ADMIN
-  //* User can not visit user dashboard
-  if (data.user.role === Roles.student && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(request.url);
-  }
 
   //* User is authenticated and role = TUTOR
   //* User can not visit admin-dashboard
-  // if (data.user.role === Roles.tutor && pathname.startsWith("/dashboard")) {
-  //   return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
-  // }
+  if (data.user.role === Roles.TUTOR && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
+  }
+
+   if (data.user.role === Roles.STUDENT && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/student/dashboard", request.url));
+  }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/tutor/:path*", "/admin/:path*"],
+  matcher: ["/dashboard/:path*", "/tutor/:path*", "/admin/:path*",],
 };
