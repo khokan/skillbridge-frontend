@@ -1,8 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Navbar } from "@/components/shared/navbar";
+
 import { Footer } from "@/components/shared/footer";
 import { Toaster } from "sonner";
+import Navbar from "@/components/shared/navbar";
 
 export const metadata: Metadata = {
   title: "SkillBridge — Connect with Expert Tutors",

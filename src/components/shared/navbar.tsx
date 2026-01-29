@@ -1,31 +1,88 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
+import { userService } from "@/services/user.service";
+import { Roles } from "@/constants/roles";
 
-export function Navbar() {
+type Role = "STUDENT" | "TUTOR" | "ADMIN";
+
+
+function linksForRole(role?: Role) {
+    console.log("Determining links for role:", role);
+  if (role === Roles.ADMIN) {
+    return [
+      { href: "/admin", label: "Dashboard" },
+      { href: "/admin/users", label: "Users" },
+      { href: "/admin/bookings", label: "Bookings" },
+      { href: "/admin/categories", label: "Categories" },
+    ];
+  }
+  if (role === Roles.TUTOR) {
+    return [
+      { href: "/tutor/dashboard", label: "Dashboard" },
+      { href: "/tutor/availability", label: "Availability" },
+      { href: "/tutor/profile", label: "Profile" },
+    ];
+  }
+  if (role === Roles.STUDENT) {
+    return [
+      { href: "/dashboard", label: "Dashboard" },
+      { href: "/dashboard/bookings", label: "My Bookings" },
+      { href: "/dashboard/profile", label: "Profile" },
+    ];
+  }
+  // not logged in (public)
+  return [
+    { href: "/tutors", label: "Tutors" },
+  ];
+}
+
+export default async function Navbar() {
+  const { data } = await userService.getSession();
+    
+  const user = data?.user as any;
+  const role = user?.role as Role | undefined;
+
+  const menu = linksForRole(role);
+
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-primary" />
-          <span className="text-lg font-semibold">SkillBridge</span>
+        <Link href="/" className="font-semibold tracking-tight">
+          SkillBridge
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          <Link href="/tutors" className="text-sm text-muted-foreground hover:text-foreground">
-            Browse Tutors
-          </Link>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground">
-            Dashboard
-          </Link>
+        <nav className="flex items-center gap-2">
+          {menu.map((m) => (
+            <Button key={m.href} asChild variant="ghost">
+              <Link href={m.href}>{m.label}</Link>
+            </Button>
+          ))}
         </nav>
 
         <div className="flex items-center gap-2">
-          <Button asChild variant="ghost">
-            <Link href="/login">Login</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/register">Get started</Link>
-          </Button>
+          {!user ? (
+            <>
+              <Button asChild variant="ghost">
+                <Link href="/login">Login</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/register">Register</Link>
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="hidden text-sm text-muted-foreground md:block">
+                {user.name} · {role}
+              </div>
+              <form action="/api/ui/logout" method="post">
+                <Button type="submit" variant="outline">
+                  Logout
+                </Button>
+              </form>
+            </>
+          )}
         </div>
       </div>
     </header>

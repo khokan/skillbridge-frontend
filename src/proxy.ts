@@ -9,7 +9,7 @@ export async function proxy(request: NextRequest) {
   let isAuthenticated = false;
 
   const { data } = await userService.getSession();
-  console.log("Middleware session data:", data , request.url);
+  // console.log("Middleware session data:", data , request.url);
 
 
   if (data) {
@@ -30,6 +30,10 @@ export async function proxy(request: NextRequest) {
 
    if (data.user.role === Roles.STUDENT && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/student/dashboard", request.url));
+  }
+
+  if (data.user.role === Roles.ADMIN && pathname.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/admin", request.url));
   }
 
   return NextResponse.next();

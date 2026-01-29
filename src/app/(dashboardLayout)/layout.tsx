@@ -5,7 +5,7 @@ import { ReactNode } from "react";
 import { userService } from "@/services/user.service";
 import { Roles } from "@/constants/roles";
 
-export default async function DashboardLayout({ student,tutor }: { children: ReactNode, student:ReactNode,tutor:ReactNode }) {
+export default async function DashboardLayout({ admin,student,tutor }: { children: ReactNode,admin:ReactNode,student:ReactNode,tutor:ReactNode }) {
   // Server-side: fetch current user (needs cookie token)
  const { data, error } = await userService.getSession();
 const userInfo = data.user;
@@ -58,7 +58,12 @@ console.log("User Info in Layout:", userInfo.role);
     //   <section className="min-w-0">{children}</section>
     // </div>
     <div>
-          {userInfo.role === Roles.STUDENT ? student : tutor}
+          {userInfo.role === Roles.STUDENT
+                ? student
+                : userInfo.role === Roles.TUTOR
+                ? tutor
+                : admin}
+
           <h1>Dashboard Layout</h1>
     </div>
   
