@@ -1,7 +1,8 @@
+import TutorProfilePage from "@/components/modules/tutorProfile/page";
+
 
 
 export default function TutorProfile() {  
     return (
-        <h1>Tutor Profile Page</h1>
-    )
+      <TutorProfilePage />    )
 }   
