@@ -8,9 +8,9 @@ export const getAdminUsers = async () => adminService.users();
 export const getAdminBookings = async () => adminService.bookings();
 export const getAdminCategories = async () => adminService.categories();
 
-export const setUserBanned = async (id: string, isBanned: boolean) => {
-  const res = await adminService.updateUserStatus(id, isBanned);
-//   revalidateTag("adminUsers");
+export const setUserStatus = async (id: string, status: "ACTIVE" | "BANNED") => {
+  const res = await adminService.updateUserStatus(id, status);
+  // revalidateTag("adminUsers");
   return res;
 };
 

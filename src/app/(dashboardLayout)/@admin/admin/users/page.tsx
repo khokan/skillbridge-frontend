@@ -2,14 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getAdminUsers, setUserBanned } from "@/actions/admin.actions";
+import { Button } from "@/components/ui/button";
+import { getAdminUsers, setUserStatus } from "@/actions/admin.actions";
 
-type User = { id: string; name: string; email: string; role: string; isBanned: boolean };
+type UserItem = {
+  id: string;
+  name: string;
+  email: string;
+  role?: string | null;
+  status?: string | null;
+  emailVerified: boolean;
+  createdAt: string;
+};
 
 export default function AdminUsersPage() {
-  const [items, setItems] = useState<User[]>([]);
+  const [items, setItems] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(false);
 
   const load = async () => {
@@ -17,7 +25,8 @@ export default function AdminUsersPage() {
       setLoading(true);
       const { data, error } = await getAdminUsers();
       if (error) throw error;
-      setItems(data?.data?.items ?? []);
+
+      setItems((data?.data?.items ?? []) as UserItem[]);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to load users");
     } finally {
@@ -29,12 +38,17 @@ export default function AdminUsersPage() {
     load();
   }, []);
 
-  const toggleBan = async (u: User) => {
+  const toggleBan = async (u: UserItem) => {
     try {
       setLoading(true);
-      const { error } = await setUserBanned(u.id, !u.isBanned);
+
+      const current = (u.status ?? "ACTIVE").toUpperCase();
+      const next = current === "BANNED" ? "ACTIVE" : "BANNED";
+
+      const { error } = await setUserStatus(u.id, next as "ACTIVE" | "BANNED");
       if (error) throw error;
-      toast.success(!u.isBanned ? "User banned" : "User unbanned");
+
+      toast.success(next === "BANNED" ? "User banned" : "User unbanned");
       await load();
     } catch (e: any) {
       toast.error(e?.message ?? "Update failed");
@@ -43,29 +57,37 @@ export default function AdminUsersPage() {
     }
   };
 
+  console.log(items)
+
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-semibold">Users</h1>
+      {items.map((u) => {
+        const status = (u.status ?? "ACTIVE").toUpperCase();
+        const isBanned = status === "BANNED";
 
-      {items.map((u) => (
-        <Card key={u.id} className="rounded-2xl">
-          <CardContent className="p-5 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{u.name}</div>
-              <div className="text-sm text-muted-foreground">{u.email}</div>
-              <div className="text-xs mt-1">{u.role} • {u.isBanned ? "BANNED" : "ACTIVE"}</div>
-            </div>
+        return (
+          <Card key={u.id} className="rounded-2xl">
+            <CardContent className="p-5 flex items-center justify-between">
+              <div className="space-y-1">
+                <div className="font-medium">{u.name}</div>
+                <div className="text-sm text-muted-foreground">{u.email}</div>
+                <div className="text-xs text-muted-foreground">
+                  Role: {u.role ?? "USER"} • Status: {status}
+                </div>
+              </div>
 
-            <Button
-              variant={u.isBanned ? "outline" : "destructive"}
-              disabled={loading}
-              onClick={() => toggleBan(u)}
-            >
-              {u.isBanned ? "Unban" : "Ban"}
-            </Button>
-          </CardContent>
-        </Card>
-      ))}
+              <Button
+                variant={isBanned ? "outline" : "destructive"}
+                disabled={loading}
+                onClick={() => toggleBan(u)}
+              >
+                {isBanned ? "Unban" : "Ban"}
+              </Button>
+            </CardContent>
+          </Card>
+        );
+      })}
     </div>
   );
 }

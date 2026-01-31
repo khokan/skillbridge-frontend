@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL!;
+const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export const adminService = {
   stats: async () => {
@@ -32,13 +32,16 @@ export const adminService = {
     }
   },
 
-  updateUserStatus: async (id: string, isBanned: boolean) => {
+ updateUserStatus: async (id: string, status: "ACTIVE" | "BANNED") => {
     try {
       const cookieStore = await cookies();
       const res = await fetch(`${API_URL}/admin/users/${id}/status`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json", Cookie: cookieStore.toString() },
-        body: JSON.stringify({ isBanned }),
+        headers: {
+          "Content-Type": "application/json",
+          Cookie: cookieStore.toString(),
+        },
+        body: JSON.stringify({ status }),
       });
       const data = await res.json();
       if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed" } };
