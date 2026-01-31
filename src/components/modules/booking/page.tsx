@@ -126,7 +126,9 @@ export default function BookingsPage() {
                     >
                       Cancel
                     </Button>
-                   
+                     <Button onClick={() => complete(b.id)} disabled={loading}>
+                        Mark Complete
+                      </Button>
                     </div>
                   )}
                   {b.status === "COMPLETED" && (
