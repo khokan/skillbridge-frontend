@@ -1,28 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import { useEffect, useMemo, useState } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
   DialogTitle,
-  DialogTrigger 
 } from "@/components/ui/dialog";
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -35,18 +40,20 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { 
-  Edit, 
-  Trash2, 
-  Plus, 
-  Save, 
-  X, 
+import {
+  Edit,
+  Trash2,
+  Plus,
+  Save,
+  X,
   Loader2,
   User,
   DollarSign,
   Languages,
-  FileText
+  FileText,
+  Tags,
 } from "lucide-react";
 
 import {
@@ -54,20 +61,32 @@ import {
   createTutorProfile,
   updateTutorProfile,
   deleteTutorProfile,
+  // ✅ add these actions
+  getCategories,
+  setTutorCategories,
 } from "@/actions/tutorProfile.actions";
 
 interface TutorProfile {
   id: string;
-  bio: string;
-  languages: string[];
+  bio?: string | null;
+  languages?: string[]; // real languages
   hourlyRate: number;
+  currency?: string;
   createdAt?: string;
   updatedAt?: string;
   userId?: string;
+  // categories might come like:
+  categories?: { category: { id: string; name: string; slug: string } }[];
 }
+
+type Category = { id: string; name: string; slug: string; isActive: boolean };
 
 export default function TutorProfilePage() {
   const [profile, setProfile] = useState<TutorProfile | null>(null);
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -76,7 +95,7 @@ export default function TutorProfilePage() {
 
   const [form, setForm] = useState({
     bio: "",
-    languages: "",
+    languages: "", // comma separated, real languages
     hourlyRate: "",
   });
 
@@ -84,96 +103,110 @@ export default function TutorProfilePage() {
     bio: "",
     languages: "",
     hourlyRate: "",
+    categories: "",
   });
 
-  // Load profile data
   useEffect(() => {
-    loadProfile();
+    void bootstrap();
   }, []);
 
-const loadProfile = async () => {
-  try {
-    setLoading(true);
-    const { data, error } = await getTutorProfile();
+  const bootstrap = async () => {
+    try {
+      setLoading(true);
 
-    console.log("API Response:", { data, error, hasData: !!data, hasError: !!error });
+      // load categories + profile in parallel
+      const [catRes, profRes] = await Promise.all([getCategories(), getTutorProfile()]);
+     
+      // categories
+      if (catRes?.error) throw new Error(catRes.error.message ?? "Failed to load categories");
+      const catItems = (catRes?.data?.items ?? catRes?.data ?? catRes?.data ?? []) as Category[];
+       console.log("result:",catItems)
+      setCategories(Array.isArray(catItems) ? catItems : []);
 
-    if (error) {
-      // Show error only if it's not a "no profile" situation
-      if (!error.message?.toLowerCase().includes("not found")) {
-        toast.error(error.message || "Failed to load profile");
+      // profile
+      if (profRes?.error) {
+        // if profile not found - keep profile null (no toast)
+        const msg = profRes.error.message?.toLowerCase() ?? "";
+        if (!msg.includes("not found")) toast.error(profRes.error.message ?? "Failed to load profile");
+        setProfile(null);
+        setSelectedCategoryIds([]);
+        return;
       }
-      setProfile(null);
-      return;
-    }
 
-    // Set profile even if data is null (means no profile exists)
-    if (data) {
-      console.log("Setting profile data:", data);
-      setProfile(data.data as TutorProfile);
-    } else {
-      console.log("No profile data, setting to null");
+      const prof = (profRes?.data?.data ?? profRes?.data) as TutorProfile | null;
+      setProfile(prof ?? null);
+
+      const ids =
+        prof?.categories?.map((x) => x.category.id).filter(Boolean) ?? [];
+      setSelectedCategoryIds(ids);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Failed to load");
       setProfile(null);
+      setSelectedCategoryIds([]);
+    } finally {
+      setLoading(false);
     }
-  } catch (error: any) {
-    console.error("Unexpected error:", error);
-    toast.error("An unexpected error occurred");
-    setProfile(null);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+
+  const activeCategories = useMemo(
+    () => categories,
+    [categories]
+  );
 
   // Open edit dialog
   const handleEdit = () => {
     if (!profile) return;
-    
+
     setForm({
-      bio: profile.bio || "",
-      languages: profile.languages?.join(", ") || "",
-      hourlyRate: profile.hourlyRate?.toString() || "",
+      bio: profile.bio ?? "",
+      languages: profile.languages?.join(", ") ?? "",
+      hourlyRate: profile.hourlyRate?.toString() ?? "",
     });
-    setErrors({ bio: "", languages: "", hourlyRate: "" });
+
+    // keep selectedCategoryIds as-is (already loaded)
+    setErrors({ bio: "", languages: "", hourlyRate: "", categories: "" });
     setIsDialogOpen(true);
   };
 
   // Open create dialog
   const handleCreate = () => {
-    setForm({
-      bio: "",
-      languages: "",
-      hourlyRate: "",
-    });
-    setErrors({ bio: "", languages: "", hourlyRate: "" });
+    setForm({ bio: "", languages: "", hourlyRate: "" });
+    setSelectedCategoryIds([]);
+    setErrors({ bio: "", languages: "", hourlyRate: "", categories: "" });
     setIsDialogOpen(true);
   };
 
-  // Validate form
   const validateForm = () => {
-    const newErrors = { bio: "", languages: "", hourlyRate: "" };
-    let isValid = true;
+    const nextErr = { bio: "", languages: "", hourlyRate: "", categories: "" };
+    let ok = true;
 
     if (!form.bio.trim()) {
-      newErrors.bio = "Bio is required";
-      isValid = false;
+      nextErr.bio = "Bio is required";
+      ok = false;
     }
 
-    if (!form.languages.trim()) {
-      newErrors.languages = "At least one language is required";
-      isValid = false;
+    const rate = Number(form.hourlyRate);
+    if (!form.hourlyRate || Number.isNaN(rate) || rate <= 0) {
+      nextErr.hourlyRate = "Valid hourly rate is required";
+      ok = false;
     }
 
-    const rate = parseFloat(form.hourlyRate);
-    if (!form.hourlyRate || isNaN(rate) || rate <= 0) {
-      newErrors.hourlyRate = "Valid hourly rate is required";
-      isValid = false;
+    // categories required (recommended)
+    if (!selectedCategoryIds.length) {
+      nextErr.categories = "Select at least one category";
+      ok = false;
     }
 
-    setErrors(newErrors);
-    return isValid;
+    setErrors(nextErr);
+    return ok;
   };
 
-  // Save profile
+  const toggleCategory = (id: string) => {
+    setSelectedCategoryIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const handleSave = async () => {
     if (!validateForm()) return;
 
@@ -182,48 +215,54 @@ const loadProfile = async () => {
 
       const payload = {
         bio: form.bio.trim(),
-        languages: form.languages.split(",").map(s => s.trim()).filter(Boolean),
-        hourlyRate: parseFloat(form.hourlyRate),
+        languages: form.languages
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+        hourlyRate: Number(form.hourlyRate),
       };
 
-      const res = profile 
+      // 1) create/update profile
+      const res = profile
         ? await updateTutorProfile(payload)
         : await createTutorProfile(payload);
 
-    if (res?.error) throw new Error(res.error.message || "An error occurred");
+      if (res?.error) throw new Error(res.error.message || "Profile save failed");
+
+      // 2) set categories (replace)
+      const catRes = await setTutorCategories({ categoryIds: selectedCategoryIds });
+      if (catRes?.error) throw new Error(catRes.error.message || "Category save failed");
 
       toast.success(profile ? "Profile updated successfully" : "Profile created successfully");
       setIsDialogOpen(false);
-      await loadProfile(); // Refresh data
-    } catch (error: any) {
-      toast.error(error.message || "Save failed");
+      await bootstrap();
+    } catch (e: any) {
+      toast.error(e?.message ?? "Save failed");
     } finally {
       setIsSaving(false);
     }
   };
 
-  // Delete profile
   const handleDelete = async () => {
     try {
       setIsDeleting(true);
       const res = await deleteTutorProfile();
-
-    if (res?.error) throw new Error(res.error.message || "An error occurred");
+      if (res?.error) throw new Error(res.error.message || "Delete failed");
 
       toast.success("Profile deleted successfully");
       setIsDeleteDialogOpen(false);
       setProfile(null);
-    } catch (error: any) {
-      toast.error(error.message || "Delete failed");
+      setSelectedCategoryIds([]);
+    } catch (e: any) {
+      toast.error(e?.message ?? "Delete failed");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString(undefined, {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -246,11 +285,9 @@ const loadProfile = async () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Tutor Profile</h1>
-          <p className="text-muted-foreground">
-            Manage your tutor profile information
-          </p>
+          <p className="text-muted-foreground">Manage your tutor profile information</p>
         </div>
-        
+
         {!profile ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
@@ -262,6 +299,7 @@ const loadProfile = async () => {
               <Edit className="mr-2 h-4 w-4" />
               Edit Profile
             </Button>
+
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive">
@@ -269,17 +307,17 @@ const loadProfile = async () => {
                   Delete Profile
                 </Button>
               </AlertDialogTrigger>
+
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your
-                    tutor profile and remove all associated data.
+                    This will permanently delete your tutor profile.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     onClick={handleDelete}
                     disabled={isDeleting}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -300,23 +338,22 @@ const loadProfile = async () => {
         )}
       </div>
 
-      {/* Profile Table */}
+      {/* Profile Details */}
       {profile ? (
-        <Card>
+        <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle>Profile Details</CardTitle>
-            <CardDescription>
-              Your current tutor profile information
-            </CardDescription>
+            <CardDescription>Your current tutor profile information</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Field</TableHead>
+                  <TableHead className="w-[220px]">Field</TableHead>
                   <TableHead>Value</TableHead>
                 </TableRow>
               </TableHeader>
+
               <TableBody>
                 <TableRow>
                   <TableCell className="font-medium">
@@ -326,30 +363,54 @@ const loadProfile = async () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-2xl whitespace-pre-wrap">
-                      {profile.bio || "Not provided"}
-                    </div>
+                    <div className="max-w-2xl whitespace-pre-wrap">{profile.bio || "Not provided"}</div>
                   </TableCell>
                 </TableRow>
-                
+
                 <TableRow>
                   <TableCell className="font-medium">
                     <div className="flex items-center">
-                      <Languages className="mr-2 h-4 w-4 text-muted-foreground" />
-                      Languages / Subjects
+                      <Tags className="mr-2 h-4 w-4 text-muted-foreground" />
+                      Categories
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {profile.languages?.map((language, index) => (
-                        <Badge key={index} variant="secondary" className="text-sm">
-                          {language}
-                        </Badge>
-                      )) || "Not specified"}
+                      {(profile.categories ?? []).length ? (
+                        profile.categories!.map((x) => (
+                          <Badge key={x.category.id} variant="secondary" className="text-sm">
+                            {x.category.name}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Not selected</span>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>
-                
+
+                <TableRow>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      <Languages className="mr-2 h-4 w-4 text-muted-foreground" />
+                      Languages
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-2">
+                      {profile.languages?.length ? (
+                        profile.languages.map((l, i) => (
+                          <Badge key={i} variant="outline" className="text-sm">
+                            {l}
+                          </Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground text-sm">Not specified</span>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+
                 <TableRow>
                   <TableCell className="font-medium">
                     <div className="flex items-center">
@@ -359,11 +420,11 @@ const loadProfile = async () => {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-lg font-semibold">
-                      ${profile.hourlyRate?.toFixed(2)}/hr
+                      {profile.hourlyRate} {profile.currency ?? "BDT"}/hr
                     </Badge>
                   </TableCell>
                 </TableRow>
-                
+
                 <TableRow>
                   <TableCell className="font-medium">
                     <div className="flex items-center">
@@ -371,16 +432,14 @@ const loadProfile = async () => {
                       User ID
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">
-                    {profile.userId || "N/A"}
-                  </TableCell>
+                  <TableCell className="font-mono text-sm">{profile.userId || "N/A"}</TableCell>
                 </TableRow>
-                
+
                 <TableRow>
                   <TableCell className="font-medium">Created At</TableCell>
                   <TableCell>{formatDate(profile.createdAt)}</TableCell>
                 </TableRow>
-                
+
                 <TableRow>
                   <TableCell className="font-medium">Updated At</TableCell>
                   <TableCell>{formatDate(profile.updatedAt)}</TableCell>
@@ -390,13 +449,13 @@ const loadProfile = async () => {
           </CardContent>
         </Card>
       ) : (
-        <Card>
+        <Card className="rounded-2xl">
           <CardContent className="pt-6">
             <div className="text-center py-12">
               <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Profile Found</h3>
               <p className="text-muted-foreground mb-6">
-                You haven&apos;t created a tutor profile yet. Create one to start offering tutoring services.
+                Create one to start offering tutoring services.
               </p>
               <Button onClick={handleCreate}>
                 <Plus className="mr-2 h-4 w-4" />
@@ -409,62 +468,76 @@ const loadProfile = async () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
-            <DialogTitle>
-              {profile ? "Edit Tutor Profile" : "Create Tutor Profile"}
-            </DialogTitle>
+            <DialogTitle>{profile ? "Edit Tutor Profile" : "Create Tutor Profile"}</DialogTitle>
             <DialogDescription>
-              {profile 
-                ? "Update your tutor profile information below."
-                : "Fill in your tutor profile information to get started."
-              }
+              {profile ? "Update your tutor profile information below." : "Fill in your profile to get started."}
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
-            {/* Bio Field */}
+          <div className="space-y-5 py-4">
+            {/* Bio */}
             <div className="space-y-2">
               <Label htmlFor="bio">
                 Bio <span className="text-destructive">*</span>
               </Label>
               <Textarea
                 id="bio"
-                placeholder="Tell students about your teaching experience, qualifications, and approach..."
                 value={form.bio}
                 onChange={(e) => setForm({ ...form, bio: e.target.value })}
                 className={errors.bio ? "border-destructive" : ""}
                 rows={4}
               />
-              {errors.bio && (
-                <p className="text-sm text-destructive">{errors.bio}</p>
-              )}
+              {errors.bio && <p className="text-sm text-destructive">{errors.bio}</p>}
             </div>
 
-            {/* Languages Field */}
+            {/* Categories */}
             <div className="space-y-2">
-              <Label htmlFor="languages">
-                Languages / Subjects <span className="text-destructive">*</span>
+              <Label>
+                Categories <span className="text-destructive">*</span>
               </Label>
+
+              <div className={`rounded-xl border p-3 ${errors.categories ? "border-destructive" : ""}`}>
+                {activeCategories.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    No active categories available. Ask admin to create categories.
+                  </p>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {activeCategories.map((c) => {
+                      const checked = selectedCategoryIds.includes(c.id);
+                      return (
+                        <label key={c.id} className="flex items-center gap-2 text-sm">
+                          <Checkbox checked={checked} onCheckedChange={() => toggleCategory(c.id)} />
+                          <span>{c.name}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {errors.categories && <p className="text-sm text-destructive">{errors.categories}</p>}
+              <p className="text-sm text-muted-foreground">Students will find you using these categories.</p>
+            </div>
+
+            {/* Languages */}
+            <div className="space-y-2">
+              <Label htmlFor="languages">Languages (optional)</Label>
               <Input
                 id="languages"
-                placeholder="e.g., Math, Physics, English, Programming"
+                placeholder="e.g., English, Bangla"
                 value={form.languages}
                 onChange={(e) => setForm({ ...form, languages: e.target.value })}
-                className={errors.languages ? "border-destructive" : ""}
               />
-              {errors.languages && (
-                <p className="text-sm text-destructive">{errors.languages}</p>
-              )}
-              <p className="text-sm text-muted-foreground">
-                Separate multiple subjects with commas
-              </p>
+              <p className="text-sm text-muted-foreground">Separate multiple languages with commas</p>
             </div>
 
-            {/* Hourly Rate Field */}
+            {/* Hourly rate */}
             <div className="space-y-2">
               <Label htmlFor="hourlyRate">
-                Hourly Rate ($) <span className="text-destructive">*</span>
+                Hourly Rate (BDT) <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
                 <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -472,25 +545,19 @@ const loadProfile = async () => {
                   id="hourlyRate"
                   type="number"
                   min="1"
-                  step="0.01"
-                  placeholder="e.g., 25.00"
+                  step="1"
+                  placeholder="e.g., 600"
                   value={form.hourlyRate}
                   onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
                   className={`pl-9 ${errors.hourlyRate ? "border-destructive" : ""}`}
                 />
               </div>
-              {errors.hourlyRate && (
-                <p className="text-sm text-destructive">{errors.hourlyRate}</p>
-              )}
+              {errors.hourlyRate && <p className="text-sm text-destructive">{errors.hourlyRate}</p>}
             </div>
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              disabled={isSaving}
-            >
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSaving}>
               <X className="mr-2 h-4 w-4" />
               Cancel
             </Button>
@@ -510,47 +577,6 @@ const loadProfile = async () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Stats Card (Optional) */}
-      {profile && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Hourly Rate</p>
-                  <p className="text-2xl font-bold">${profile.hourlyRate?.toFixed(2)}</p>
-                </div>
-                <DollarSign className="h-8 w-8 text-green-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Subjects</p>
-                  <p className="text-2xl font-bold">{profile.languages?.length || 0}</p>
-                </div>
-                <Languages className="h-8 w-8 text-blue-500" />
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Profile Status</p>
-                  <p className="text-2xl font-bold text-green-600">Active</p>
-                </div>
-                <User className="h-8 w-8 text-purple-500" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
     </div>
   );
 }
