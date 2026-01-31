@@ -19,7 +19,7 @@ type Booking = {
   currency?: string;
 };
 
-export default function BookingsPage() {
+export default function StudentBookingsPage() {
   const [items, setItems] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(false);
 
