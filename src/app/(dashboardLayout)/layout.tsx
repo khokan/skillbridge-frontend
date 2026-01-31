@@ -7,8 +7,8 @@ import { Roles } from "@/constants/roles";
 
 export default async function DashboardLayout({ admin,student,tutor }: { children: ReactNode,admin:ReactNode,student:ReactNode,tutor:ReactNode }) {
   // Server-side: fetch current user (needs cookie token)
- const { data, error } = await userService.getSession();
-const userInfo = data.user;
+//  const { data, error } = await userService.getSession();
+// const userInfo = data.user;
   // if (error) {
   //   return (
   //     <div className="p-6 text-sm text-destructive">
@@ -57,11 +57,11 @@ const userInfo = data.user;
     //   <section className="min-w-0">{children}</section>
     // </div>
     <div>
-          {userInfo.role === Roles.STUDENT
+          {/* {userInfo.role === Roles.STUDENT
                 ? student
                 : userInfo.role === Roles.TUTOR
                 ? tutor
-                : admin}
+                : admin} */}
 
           <h1>Dashboard Layout</h1>
     </div>

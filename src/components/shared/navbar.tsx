@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
 import { Button } from "@/components/ui/button";
 import { userService } from "@/services/user.service";
 import { Roles } from "@/constants/roles";
