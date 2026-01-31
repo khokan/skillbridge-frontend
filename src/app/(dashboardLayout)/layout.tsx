@@ -9,7 +9,6 @@ export default async function DashboardLayout({ admin,student,tutor }: { childre
   // Server-side: fetch current user (needs cookie token)
  const { data, error } = await userService.getSession();
 const userInfo = data.user;
-console.log("User Info in Layout:", userInfo.role);
   // if (error) {
   //   return (
   //     <div className="p-6 text-sm text-destructive">

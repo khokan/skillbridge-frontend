@@ -4,7 +4,7 @@ import { Roles } from "./constants/roles";
 
 
 export async function proxy(request: NextRequest) {
-   const pathname = request.url;
+   const pathname = request.nextUrl.pathname;
 
   let isAuthenticated = false;
 
@@ -21,6 +21,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  console.log("Role", data.user.role, pathname)
 
   //* User is authenticated and role = TUTOR
   //* User can not visit admin-dashboard

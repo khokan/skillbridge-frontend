@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { userService } from "@/services/user.service";
 import { Roles } from "@/constants/roles";
 
-type Role = "STUDENT" | "TUTOR" | "ADMIN";
+type Role = "student" | "tutor" | "admin";
 
 
 function linksForRole(role?: Role) {
