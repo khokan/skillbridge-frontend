@@ -12,21 +12,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,25 +48,25 @@ import {
   createTutorProfile,
   updateTutorProfile,
   deleteTutorProfile,
-  // ✅ add these actions
   getCategories,
   setTutorCategories,
 } from "@/actions/tutorProfile.actions";
 
+type Category = { id: string; name: string; slug: string; isActive: boolean };
+
 interface TutorProfile {
   id: string;
   bio?: string | null;
-  languages?: string[]; // real languages
-  hourlyRate: number;
-  currency?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  userId?: string;
-  // categories might come like:
+  languages?: string[] | null;
+  hourlyRate?: number | null;
+  currency?: string | null;
+  createdAt?: string | null;
+  updatedAt?: string | null;
+  userId?: string | null;
   categories?: { category: { id: string; name: string; slug: string } }[];
 }
 
-type Category = { id: string; name: string; slug: string; isActive: boolean };
+const safeArray = <T,>(val: unknown): T[] => (Array.isArray(val) ? (val as T[]) : []);
 
 export default function TutorProfilePage() {
   const [profile, setProfile] = useState<TutorProfile | null>(null);
@@ -95,7 +82,7 @@ export default function TutorProfilePage() {
 
   const [form, setForm] = useState({
     bio: "",
-    languages: "", // comma separated, real languages
+    languages: "", // comma separated
     hourlyRate: "",
   });
 
@@ -106,38 +93,63 @@ export default function TutorProfilePage() {
     categories: "",
   });
 
+  const hasProfile = !!profile?.id;
+
   useEffect(() => {
     void bootstrap();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bootstrap = async () => {
     try {
       setLoading(true);
 
-      // load categories + profile in parallel
       const [catRes, profRes] = await Promise.all([getCategories(), getTutorProfile()]);
-     
-      // categories
-      if (catRes?.error) throw new Error(catRes.error.message ?? "Failed to load categories");
-      const catItems = (catRes?.data?.items ?? catRes?.data ?? catRes?.data ?? []) as Category[];
-       console.log("result:",catItems)
-      setCategories(Array.isArray(catItems) ? catItems : []);
 
-      // profile
+      // ---- categories ----
+      if (catRes?.error) throw new Error(catRes.error.message ?? "Failed to load categories");
+
+      // handle multiple possible shapes
+      const catItems =
+        (catRes as any)?.data?.items ??
+        (catRes as any)?.data?.data?.items ??
+        (catRes as any)?.data ??
+        (catRes as any)?.items ??
+        [];
+
+      setCategories(safeArray<Category>(catItems));
+
+      // ---- profile ----
       if (profRes?.error) {
-        // if profile not found - keep profile null (no toast)
-        const msg = profRes.error.message?.toLowerCase() ?? "";
+        const msg = (profRes.error.message ?? "").toLowerCase();
+        // if your backend returns "not found" when empty, keep it silent
         if (!msg.includes("not found")) toast.error(profRes.error.message ?? "Failed to load profile");
         setProfile(null);
         setSelectedCategoryIds([]);
         return;
       }
 
-      const prof = (profRes?.data?.data ?? profRes?.data) as TutorProfile | null;
-      setProfile(prof ?? null);
+      const rawProf =
+        (profRes as any)?.data?.data ??
+        (profRes as any)?.data?.profile ??
+        (profRes as any)?.data ??
+        (profRes as any)?.profile ??
+        null;
 
-      const ids =
-        prof?.categories?.map((x) => x.category.id).filter(Boolean) ?? [];
+      // IMPORTANT: treat no-id as "no profile"
+      if (!rawProf || !rawProf.id) {
+        setProfile(null);
+        setSelectedCategoryIds([]);
+        return;
+      }
+
+      const prof = rawProf as TutorProfile;
+      setProfile(prof);
+
+      const ids = safeArray<{ category: { id: string } }>(prof.categories)
+        .map((x) => x?.category?.id)
+        .filter(Boolean) as string[];
+
       setSelectedCategoryIds(ids);
     } catch (e: any) {
       toast.error(e?.message ?? "Failed to load");
@@ -148,27 +160,24 @@ export default function TutorProfilePage() {
     }
   };
 
-  const activeCategories = useMemo(
-    () => categories,
-    [categories]
-  );
+  const activeCategories = useMemo(() => {
+    // show only active categories if you want
+    return categories.filter((c) => c.isActive !== false);
+  }, [categories]);
 
-  // Open edit dialog
   const handleEdit = () => {
-    if (!profile) return;
+    if (!profile?.id) return;
 
     setForm({
       bio: profile.bio ?? "",
-      languages: profile.languages?.join(", ") ?? "",
-      hourlyRate: profile.hourlyRate?.toString() ?? "",
+      languages: safeArray<string>(profile.languages).join(", "),
+      hourlyRate: profile.hourlyRate ? String(profile.hourlyRate) : "",
     });
 
-    // keep selectedCategoryIds as-is (already loaded)
     setErrors({ bio: "", languages: "", hourlyRate: "", categories: "" });
     setIsDialogOpen(true);
   };
 
-  // Open create dialog
   const handleCreate = () => {
     setForm({ bio: "", languages: "", hourlyRate: "" });
     setSelectedCategoryIds([]);
@@ -191,7 +200,6 @@ export default function TutorProfilePage() {
       ok = false;
     }
 
-    // categories required (recommended)
     if (!selectedCategoryIds.length) {
       nextErr.categories = "Select at least one category";
       ok = false;
@@ -202,9 +210,7 @@ export default function TutorProfilePage() {
   };
 
   const toggleCategory = (id: string) => {
-    setSelectedCategoryIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
-    );
+    setSelectedCategoryIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const handleSave = async () => {
@@ -223,17 +229,14 @@ export default function TutorProfilePage() {
       };
 
       // 1) create/update profile
-      const res = profile
-        ? await updateTutorProfile(payload)
-        : await createTutorProfile(payload);
-
+      const res = hasProfile ? await updateTutorProfile(payload) : await createTutorProfile(payload);
       if (res?.error) throw new Error(res.error.message || "Profile save failed");
 
       // 2) set categories (replace)
       const catRes = await setTutorCategories({ categoryIds: selectedCategoryIds });
       if (catRes?.error) throw new Error(catRes.error.message || "Category save failed");
 
-      toast.success(profile ? "Profile updated successfully" : "Profile created successfully");
+      toast.success(hasProfile ? "Profile updated successfully" : "Profile created successfully");
       setIsDialogOpen(false);
       await bootstrap();
     } catch (e: any) {
@@ -260,7 +263,7 @@ export default function TutorProfilePage() {
     }
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString(undefined, {
       year: "numeric",
@@ -288,7 +291,7 @@ export default function TutorProfilePage() {
           <p className="text-muted-foreground">Manage your tutor profile information</p>
         </div>
 
-        {!profile ? (
+        {!hasProfile ? (
           <Button onClick={handleCreate}>
             <Plus className="mr-2 h-4 w-4" />
             Create Profile
@@ -311,9 +314,7 @@ export default function TutorProfilePage() {
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete your tutor profile.
-                  </AlertDialogDescription>
+                  <AlertDialogDescription>This will permanently delete your tutor profile.</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
@@ -339,7 +340,7 @@ export default function TutorProfilePage() {
       </div>
 
       {/* Profile Details */}
-      {profile ? (
+      {hasProfile ? (
         <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle>Profile Details</CardTitle>
@@ -363,7 +364,7 @@ export default function TutorProfilePage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-2xl whitespace-pre-wrap">{profile.bio || "Not provided"}</div>
+                    <div className="max-w-2xl whitespace-pre-wrap">{profile?.bio || "Not provided"}</div>
                   </TableCell>
                 </TableRow>
 
@@ -376,8 +377,8 @@ export default function TutorProfilePage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {(profile.categories ?? []).length ? (
-                        profile.categories!.map((x) => (
+                      {safeArray(profile?.categories).length ? (
+                        safeArray(profile?.categories).map((x) => (
                           <Badge key={x.category.id} variant="secondary" className="text-sm">
                             {x.category.name}
                           </Badge>
@@ -398,9 +399,9 @@ export default function TutorProfilePage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {profile.languages?.length ? (
-                        profile.languages.map((l, i) => (
-                          <Badge key={i} variant="outline" className="text-sm">
+                      {safeArray<string>(profile?.languages).length ? (
+                        safeArray<string>(profile?.languages).map((l, i) => (
+                          <Badge key={`${l}-${i}`} variant="outline" className="text-sm">
                             {l}
                           </Badge>
                         ))
@@ -420,7 +421,7 @@ export default function TutorProfilePage() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="text-lg font-semibold">
-                      {profile.hourlyRate} {profile.currency ?? "BDT"}/hr
+                      {profile?.hourlyRate ?? 0} {profile?.currency ?? "BDT"}/hr
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -432,17 +433,17 @@ export default function TutorProfilePage() {
                       User ID
                     </div>
                   </TableCell>
-                  <TableCell className="font-mono text-sm">{profile.userId || "N/A"}</TableCell>
+                  <TableCell className="font-mono text-sm">{profile?.userId || "N/A"}</TableCell>
                 </TableRow>
 
                 <TableRow>
                   <TableCell className="font-medium">Created At</TableCell>
-                  <TableCell>{formatDate(profile.createdAt)}</TableCell>
+                  <TableCell>{formatDate(profile?.createdAt)}</TableCell>
                 </TableRow>
 
                 <TableRow>
                   <TableCell className="font-medium">Updated At</TableCell>
-                  <TableCell>{formatDate(profile.updatedAt)}</TableCell>
+                  <TableCell>{formatDate(profile?.updatedAt)}</TableCell>
                 </TableRow>
               </TableBody>
             </Table>
@@ -454,9 +455,7 @@ export default function TutorProfilePage() {
             <div className="text-center py-12">
               <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Profile Found</h3>
-              <p className="text-muted-foreground mb-6">
-                Create one to start offering tutoring services.
-              </p>
+              <p className="text-muted-foreground mb-6">Create one to start offering tutoring services.</p>
               <Button onClick={handleCreate}>
                 <Plus className="mr-2 h-4 w-4" />
                 Create Profile
@@ -470,9 +469,9 @@ export default function TutorProfilePage() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
-            <DialogTitle>{profile ? "Edit Tutor Profile" : "Create Tutor Profile"}</DialogTitle>
+            <DialogTitle>{hasProfile ? "Edit Tutor Profile" : "Create Tutor Profile"}</DialogTitle>
             <DialogDescription>
-              {profile ? "Update your tutor profile information below." : "Fill in your profile to get started."}
+              {hasProfile ? "Update your tutor profile information below." : "Fill in your profile to get started."}
             </DialogDescription>
           </DialogHeader>
 
@@ -500,9 +499,7 @@ export default function TutorProfilePage() {
 
               <div className={`rounded-xl border p-3 ${errors.categories ? "border-destructive" : ""}`}>
                 {activeCategories.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">
-                    No active categories available. Ask admin to create categories.
-                  </p>
+                  <p className="text-sm text-muted-foreground">No active categories available. Ask admin to create categories.</p>
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2">
                     {activeCategories.map((c) => {
@@ -570,7 +567,7 @@ export default function TutorProfilePage() {
               ) : (
                 <>
                   <Save className="mr-2 h-4 w-4" />
-                  {profile ? "Update Profile" : "Create Profile"}
+                  {hasProfile ? "Update Profile" : "Create Profile"}
                 </>
               )}
             </Button>
