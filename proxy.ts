@@ -26,13 +26,14 @@ export async function proxy(request: NextRequest) {
 
   //* User is authenticated and role = TUTOR
   //* User can not visit admin-dashboard
+  console.log("test:",data?.user.role, Roles.TUTOR)
   if (data.user.role === Roles.TUTOR && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
   }
 
-   if (data.user.role === Roles.STUDENT && pathname.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/student/dashboard", request.url));
-  }
+  //  if (data.user.role === Roles.STUDENT && pathname.startsWith("/dashboard")) {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url));
+  // }
 
   if (data.user.role === Roles.ADMIN && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/admin", request.url));

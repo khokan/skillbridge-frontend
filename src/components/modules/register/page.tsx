@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth";
 
 export default function RegisterPage() {
-  const [role, setRole] = useState<"STUDENT" | "TUTOR">("STUDENT");
+  const [role, setRole] = useState<"student" | "tutor">("student");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -32,7 +32,7 @@ export default function RegisterPage() {
      }
 
       toast.success("Account created!");
-      router.push(role === "TUTOR" ? "/tutor/dashboard" : "/dashboard");
+      router.push(role === "tutor" ? "/tutor/dashboard" : "/dashboard");
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -48,10 +48,10 @@ export default function RegisterPage() {
           <p className="mt-1 text-sm text-muted-foreground">Choose your role during signup.</p>
 
           <div className="mt-5 grid grid-cols-2 gap-2">
-            <Button variant={role === "STUDENT" ? "default" : "outline"} onClick={() => setRole("STUDENT")}>
+            <Button variant={role === "student" ? "default" : "outline"} onClick={() => setRole("student")}>
               Student
             </Button>
-            <Button variant={role === "TUTOR" ? "default" : "outline"} onClick={() => setRole("TUTOR")}>
+            <Button variant={role === "tutor" ? "default" : "outline"} onClick={() => setRole("tutor")}>
               Tutor
             </Button>
           </div>

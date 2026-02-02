@@ -1,44 +1,8 @@
-import Link from "next/link";
-import { getTutors } from "@/actions/tutor.actions";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import TutorsPage from "@/components/modules/tutor-page/page";
 
-export default async function TutorsPage() {
-  const { data, error } = await getTutors();
+export const dynamic = "force-dynamic";
 
-  // backend returns: { success, data: { items: [...] } }
-  const tutors = data?.data?.items ?? [];
-
-  return (
-    <div className="mx-auto max-w-6xl space-y-6 p-4">
-      <h1 className="text-2xl font-semibold">Browse Tutors</h1>
-      {error ? <p className="text-sm text-destructive">{error.message}</p> : null}
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {tutors.map((t: any) => (
-          <Card key={t.id} className="rounded-2xl">
-            <CardContent className="p-5 space-y-3">
-              <div>
-                <div className="font-semibold">{t.user?.name ?? "Tutor"}</div>
-                <div className="text-sm text-muted-foreground">{t.headline ?? "Expert Tutor"}</div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Rate</span>
-                <span className="font-medium">{t.hourlyRate} {t.currency ?? "BDT"} / hr</span>
-              </div>
-
-              <Button asChild className="w-full">
-                <Link href={`/tutors/${t.id}`}>View & Book</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {tutors.length === 0 && !error ? (
-        <p className="text-sm text-muted-foreground">No tutors found.</p>
-      ) : null}
-    </div>
-  );
-}
+export default function TutorsMainPage() {  
+    return (
+      <TutorsPage />    )
+}   

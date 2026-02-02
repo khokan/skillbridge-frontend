@@ -52,6 +52,15 @@ import {
   setTutorCategories,
 } from "@/actions/tutorProfile.actions";
 
+type ProfileCategory = {
+  category: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+};
+
+
 type Category = { id: string; name: string; slug: string; isActive: boolean };
 
 interface TutorProfile {
@@ -377,8 +386,8 @@ export default function TutorProfilePage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      {safeArray(profile?.categories).length ? (
-                        safeArray(profile?.categories).map((x) => (
+                 {safeArray<ProfileCategory>(profile?.categories).length ? (
+                    safeArray<ProfileCategory>(profile?.categories).map((x) => (
                           <Badge key={x.category.id} variant="secondary" className="text-sm">
                             {x.category.name}
                           </Badge>

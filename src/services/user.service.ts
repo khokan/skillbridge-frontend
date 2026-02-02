@@ -5,6 +5,10 @@ import { env } from "process";
 
 const AUTH_API= env.AUTH_URL // To get env missing error
 
+if (!AUTH_API) {
+  console.warn("AUTH_URL environment variable is not set");
+}
+
 export const userService = {
     getSession: async function () {
         try{
@@ -27,7 +31,9 @@ export const userService = {
                 console.error(error)
                  return { data:null, error:{message: "something went wrong"} }; 
             }
-}}
+}
+
+}
 
   
  
