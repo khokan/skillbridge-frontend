@@ -3,21 +3,25 @@ import { cookies } from "next/headers";
 const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 
 export const tutorService = {
-  getTutors: async function () {
+ getTutors: async (params?: { q?: string; category?: string }) => {
     try {
-      const cookieStore = await cookies();
-      const res = await fetch(`${API_URL}/tutors`, {
-        headers: { Cookie: cookieStore.toString() },
-        cache: "no-store",
-      });
+      const url = new URL(`${API_URL}/tutors`);
 
+      if (params?.q) url.searchParams.set("q", params.q);
+      if (params?.category) url.searchParams.set("category", params.category);
+
+         console.log("FETCHING:", url.toString()); // ✅ debug
+         
+      const res = await fetch(url.toString(), { cache: "no-store" });
       const data = await res.json();
-      if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed to load tutors" } };
+
+      if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed" } };
       return { data, error: null };
     } catch {
       return { data: null, error: { message: "Something Went Wrong" } };
     }
   },
+
 
   getTutorById: async function (id: string) {
     try {
@@ -50,7 +54,6 @@ export const tutorService = {
   },
    getReviewByBookingId: async (bookingId: string) => {
     try {
-      console.log("bid:",bookingId)
       const cookieStore = await cookies();
       const res = await fetch(`${API_URL}/tutor/reviews/${bookingId}`, {
         headers: { Cookie: cookieStore.toString() },

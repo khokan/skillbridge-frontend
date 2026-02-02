@@ -31,8 +31,6 @@ export default async function TutorDetailsPage({
   const user = session?.user;
   const isLoggedIn = !!user;
 
-  console.log("data:",id)
-
   return (
     <div className="mx-auto max-w-4xl space-y-6 p-4">
       <Card className="rounded-2xl">
