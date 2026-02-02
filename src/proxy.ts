@@ -22,11 +22,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  console.log("Role", data.user.role, pathname)
+  console.log("Role:", data.user.role, pathname)
 
   //* User is authenticated and role = TUTOR
   //* User can not visit admin-dashboard
-  console.log("test:",data?.user.role, Roles.TUTOR)
   if (data.user.role === Roles.TUTOR && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
   }

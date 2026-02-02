@@ -26,8 +26,17 @@ export default function AdminUsersPage() {
       const { data, error } = await getAdminUsers();
       if (error) throw error;
 
-      setItems((data?.data?.items ?? []) as UserItem[]);
-    } catch (e: any) {
+       const users = (data?.data?.items ?? []) as UserItem[];
+       
+     const filteredUsers = users.filter((u) => {
+      const role = (u.role ?? "").toLowerCase();
+      return role !== "admin";
+    });
+
+      setItems(filteredUsers);
+      console.log(items)
+    } 
+    catch (e: any) {
       toast.error(e?.message ?? "Failed to load users");
     } finally {
       setLoading(false);

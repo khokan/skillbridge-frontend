@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { userService } from "@/services/user.service";
 import { Roles } from "@/constants/roles";
+import Image from "next/image";
 
 type Role = "student" | "tutor" | "admin";
 
@@ -47,9 +48,18 @@ export default async function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="font-semibold tracking-tight">
-          SkillBridge
-        </Link>
+        
+      <Link href="/" className="shrink-0">
+              <div className="relative w-30 h-10 md:w-40 md:h-16">
+                <Image
+                  src="/logo.svg"
+                  alt="SwiftCart Logo"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 7rem, (max-width: 1024px) 10rem, 12rem"
+                />
+              </div>
+            </Link>
 
         <nav className="flex items-center gap-2">
           {menu.map((m) => (
