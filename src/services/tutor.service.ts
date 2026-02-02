@@ -34,4 +34,19 @@ export const tutorService = {
       return { data: null, error: { message: "Something Went Wrong" } };
     }
   },
+  geReviews: async (id: string) => {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${API_URL}/tutors/reviews/${id}`, {
+        headers: { Cookie: cookieStore.toString() },
+        cache: "no-store",
+      });
+      const data = await res.json();
+          console.log("idatar:d:", data)
+      if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed" } };
+      return { data, error: null };
+    } catch {
+      return { data: null, error: { message: "Something Went Wrong" } };
+    }
+  },
 };
