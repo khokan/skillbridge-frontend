@@ -1,4 +1,4 @@
-import StudentBookingsPage from "@/components/modules/stud-booking/page";
+import StudentBookingsPage from "@/components/modules/tutor-booking/page";
 
 export const dynamic = "force-dynamic";
 

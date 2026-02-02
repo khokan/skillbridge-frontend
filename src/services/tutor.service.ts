@@ -42,7 +42,21 @@ export const tutorService = {
         cache: "no-store",
       });
       const data = await res.json();
-          console.log("idatar:d:", data)
+      if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed" } };
+      return { data, error: null };
+    } catch {
+      return { data: null, error: { message: "Something Went Wrong" } };
+    }
+  },
+   getReviewByBookingId: async (bookingId: string) => {
+    try {
+      console.log("bid:",bookingId)
+      const cookieStore = await cookies();
+      const res = await fetch(`${API_URL}/tutor/reviews/${bookingId}`, {
+        headers: { Cookie: cookieStore.toString() },
+        cache: "no-store",
+      });
+      const data = await res.json();
       if (!res.ok) return { data: null, error: { message: data?.message ?? "Failed" } };
       return { data, error: null };
     } catch {

@@ -2,6 +2,7 @@ import { getTutorById, getTutorReviews } from "@/actions/tutor.actions";
 import CreateBookingDialog from "@/components/modules/tutors/create-booking-dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Stars } from "@/components/modules/reviews/stars";
+import { userService } from "@/services/user.service";
 
 export default async function TutorDetailsPage({
   params,
@@ -25,6 +26,10 @@ export default async function TutorDetailsPage({
   const reviewPayload = reviewsData?.data; // { summary, items }
   const summary = reviewPayload?.summary;
   const reviews = reviewPayload?.items ?? [];
+
+  const { data: session } = await userService.getSession();
+  const user = session?.user;
+  const isLoggedIn = !!user;
 
   console.log("data:",id)
 
@@ -51,7 +56,18 @@ export default async function TutorDetailsPage({
             </div>
           )}
 
-          <CreateBookingDialog tutorProfileId={tutor.id} slots={slots} />
+          {isLoggedIn ? (
+              <CreateBookingDialog tutorProfileId={tutor.id} slots={slots} />
+            ) : (
+              <div className="rounded-xl border p-3 text-sm text-muted-foreground">
+                Please{" "}
+                <a href="/login" className="text-primary underline">
+                  login
+                </a>{" "}
+                to book a session.
+              </div>
+            )}
+
         </CardContent>
       </Card>
 

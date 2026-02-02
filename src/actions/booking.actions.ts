@@ -8,7 +8,6 @@ export const getBookings = async () => {
 };
 
 export const createBooking = async (payload: any) => {
-  console.log("payload",payload)
   const res = await bookingService.create(payload);
 //   revalidateTag("bookings");
   return res;
