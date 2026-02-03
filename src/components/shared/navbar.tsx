@@ -8,7 +8,6 @@ type Role = "student" | "tutor" | "admin";
 
 
 function linksForRole(role?: Role) {
-    console.log("Determining links for role:", role);
   if (role === Roles.ADMIN) {
     return [
       { href: "/admin", label: "Dashboard" },

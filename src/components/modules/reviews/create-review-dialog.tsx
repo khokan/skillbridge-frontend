@@ -44,7 +44,6 @@ export default function CreateReviewDialog({
         comment: comment.trim() ? comment.trim() : undefined,
       };
 
-      console.log("pyloD", payload)
       const { error } = await createReview(payload);
       if (error) throw error;
 

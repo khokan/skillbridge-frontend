@@ -34,8 +34,7 @@ export default function TutorBookingsPage() {
   const load = async () => {
     try {
       setLoading(true);
-
-      // ✅ you missed this call
+   
       const { data, error } = await getBookings();
       if (error) throw error;
 
@@ -43,14 +42,12 @@ export default function TutorBookingsPage() {
 
       // only fetch reviews for completed
       const completed = list.filter((b) => b.status === "COMPLETED");
-
+      console.log(completed);
       const reviews = await Promise.all(
         completed.map(async (b) => {
           const r = await getTutorReviewByBookingId(b.id);
-
-          // your backend returns: { success: true, data: { summary, review } }
+          console.log(r)
           const review = r?.data?.data?.review ?? null;
-
           return { bookingId: b.id, review };
         })
       );
@@ -183,6 +180,7 @@ export default function TutorBookingsPage() {
                 </div>
 
                 {/* ✅ show review once, under completed session */}
+               
                 {b.status === "COMPLETED" && (
                   <div className="rounded-xl border p-3 text-sm">
                     {b.review ? (

@@ -10,8 +10,6 @@ export const tutorService = {
       if (params?.q) url.searchParams.set("q", params.q);
       if (params?.category) url.searchParams.set("category", params.category);
 
-         console.log("FETCHING:", url.toString()); // ✅ debug
-         
       const res = await fetch(url.toString(), { cache: "no-store" });
       const data = await res.json();
 

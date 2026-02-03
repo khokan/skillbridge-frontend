@@ -22,7 +22,6 @@ export const tutorBookingService = {
   completeBooking: async function (bookingId: string) {
     try {
       const cookieStore = await cookies();
-      console.log('booking', bookingId)
       const res = await fetch(`${API_URL}/bookings/${bookingId}/complete`, {
         method: "PATCH",
         headers: { Cookie: cookieStore.toString() },

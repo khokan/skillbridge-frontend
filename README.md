@@ -1,36 +1,147 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+# 🎓 SkillBridge – Frontend
 
-First, run the development server:
+SkillBridge Frontend is a modern, role-aware web application built with Next.js and shadcn/ui.  
+It provides distinct experiences for Students, Tutors, and Admins.
+
+---
+
+## 🧱 Tech Stack
+
+- **Next.js (App Router)**
+- **TypeScript**
+- **shadcn/ui**
+- **Tailwind CSS**
+- **Server Actions**
+- **Sonner (toast notifications)**
+
+---
+
+## 🗂️ Project Structure
+
+src/
+├─ app/
+│ ├─ (public)/
+│ │ ├─ page.tsx
+│ │ ├─ tutors/
+│ │ └─ tutors/[id]/
+│ ├─ dashboard/ # Student
+│ ├─ tutor/ # Tutor
+│ └─ admin/ # Admin
+├─ actions/
+├─ services/
+├─ components/
+├─ constants/
+└─ proxy.ts
+
+
+---
+
+## 🔐 Authentication Flow
+
+- Uses **Better Auth**
+- Session fetched via API
+- Role-based redirects via `proxy.ts`
+
+### Default Redirects
+| Role | Redirect |
+|----|---------|
+| Student | `/dashboard` |
+| Tutor | `/tutor/dashboard` |
+| Admin | `/admin` |
+
+---
+
+## 🧭 Routes Overview
+
+### 🌍 Public
+| Route | Description |
+|-----|------------|
+| `/` | Landing page |
+| `/tutors` | Browse tutors |
+| `/tutors/:id` | Tutor profile & booking |
+| `/login` | Login |
+| `/register` | Register |
+
+---
+
+### 👨‍🎓 Student
+| Route | Description |
+|-----|------------|
+| `/dashboard` | My bookings |
+| `/dashboard/profile` | Profile |
+| Review modal | Leave review |
+
+---
+
+### 👨‍🏫 Tutor
+| Route | Description |
+|-----|------------|
+| `/tutor/dashboard` | Tutor bookings |
+| `/tutor/profile` | Profile |
+| `/tutor/availability` | Availability |
+| `/tutor/reviews` | Ratings & reviews |
+
+---
+
+### 🛡️ Admin
+| Route | Description |
+|-----|------------|
+| `/admin` | Stats |
+| `/admin/users` | Manage users |
+| `/admin/bookings` | All bookings |
+| `/admin/categories` | Categories |
+
+---
+
+## 🔁 Data Fetch Pattern
+
+
+- All pages use:
+  - `try/catch`
+  - Toast notifications
+- Server Actions for mutations
+- Services handle cookies & API calls
+
+---
+
+## 🎨 UI Principles
+
+- shadcn components only
+- Consistent spacing & typography
+- Accessible dialogs & tables
+- Clear loading & error states
+
+---
+
+## ⚙️ Environment Variables
+
+---
+
+## ▶️ Run Frontend
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+⭐ UX Highlights
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Booking modal with slot selection
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Role-aware navbar
 
-## Learn More
+Review dialog after completion
 
-To learn more about Next.js, take a look at the following resources:
+Admin-safe pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Clean dashboards
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+📌 Future Enhancements
 
-## Deploy on Vercel
+Realtime updates
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Chat between tutor & student
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Payment gateway
+
+Dark mode

@@ -32,9 +32,7 @@ export default function AdminUsersPage() {
       const role = (u.role ?? "").toLowerCase();
       return role !== "admin";
     });
-
       setItems(filteredUsers);
-      console.log(items)
     } 
     catch (e: any) {
       toast.error(e?.message ?? "Failed to load users");
@@ -65,8 +63,6 @@ export default function AdminUsersPage() {
       setLoading(false);
     }
   };
-
-  console.log(items)
 
   return (
     <div className="space-y-4">

@@ -23,7 +23,6 @@ export default function LoginPage() {
       const password = String(formData.get("password") ?? "");
 
      const {data, error} = await  authClient.signIn.email({email, password});
-     console.log({data, error});
 
      if(error) {
         toast.error(`Login failed: ${error.message}`);
