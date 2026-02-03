@@ -1,4 +1,4 @@
-import TutorAvailabilityPage from "@/components/modules/tutor-availability/page";
+import TutorAvailabilityPage from "@/components/modules/tutor/Avalaibility";
 
 export const dynamic = "force-dynamic";
 

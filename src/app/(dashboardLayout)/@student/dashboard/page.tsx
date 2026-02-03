@@ -1,4 +1,4 @@
-import StudentDashboardPage from "@/components/modules/dashboard/student/page";
+import StudentDashboardPage from "@/components/modules/student/page";
 
 export const dynamic = "force-dynamic";
 

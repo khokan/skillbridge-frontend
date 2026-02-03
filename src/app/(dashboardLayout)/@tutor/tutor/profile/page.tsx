@@ -1,4 +1,4 @@
-import TutorProfilePage from "@/components/modules/tutorProfile/page";
+import TutorProfilePage from "@/components/modules/tutor/Profile";
 
 export const dynamic = "force-dynamic";
 
