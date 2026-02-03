@@ -1,4 +1,4 @@
-import AdminBookingsPage from "@/components/modules/admin-booking/page";
+import AdminBookingsPage from "@/components/modules/admin/Booking";
 
 export const dynamic = "force-dynamic";
 

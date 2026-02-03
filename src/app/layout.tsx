@@ -1,6 +1,9 @@
 import "./globals.css";
 import type { Metadata } from "next";
 
+// app/layout.tsx
+export const dynamic = "force-dynamic";
+
 import { Footer } from "@/components/shared/footer";
 import { Toaster } from "sonner";
 import Navbar from "@/components/shared/navbar";

@@ -32,6 +32,7 @@ export default function RegisterPage() {
 
       toast.success("Account created!");
       router.push(role === "tutor" ? "/tutor/dashboard" : "/dashboard");
+      router.refresh();
     } catch (e: any) {
       toast.error(e.message);
     } finally {

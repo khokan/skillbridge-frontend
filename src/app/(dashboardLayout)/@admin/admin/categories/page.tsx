@@ -1,5 +1,5 @@
 
-import AdminCategoriesPage from "@/components/modules/categories/page";
+import AdminCategoriesPage from "@/components/modules/admin/category";
 
 export const dynamic = "force-dynamic";
 

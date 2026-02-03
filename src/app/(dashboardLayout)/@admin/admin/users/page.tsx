@@ -1,4 +1,5 @@
-import AdminUsersPage from "@/components/modules/admin-user/page";
+import AdminUsersPage from "@/components/modules/admin/User";
+
 
 export const dynamic = "force-dynamic";
 

@@ -65,7 +65,6 @@ export default async function TutorsPage({
   const tutors = data?.data?.items ?? [];
   const categories = catData?.items ?? [];
 
-  
   // Apply client-side filtering for rating and experience
   const filteredTutors = filterTutors(
     tutors.length > 0 ? tutors : tutors,
@@ -86,7 +85,7 @@ export default async function TutorsPage({
     : filteredTutors;
 
   // Popular categories for quick filters
-  const popularCategories = ["Mathematics", "Physics", "English", "Chemistry", "Programming", "Languages", "Business", "Art"];
+  const popularCategories = ["mathematics", "physics", "english", "chemistry", "programming", "languages", "business", "art"];
 
   // Check if any filters are active
   const hasActiveFilters = q || (category && category !== "all") || ratingFilter !== "0" || experienceFilter !== "0";
@@ -133,7 +132,8 @@ export default async function TutorsPage({
         {/* Search & Filter Section */}
         <div className="mb-8 space-y-4">
           <form className="space-y-4" action="/tutors" method="GET">
-            <div className="relative">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 name="q"
@@ -142,8 +142,6 @@ export default async function TutorsPage({
                 className="h-12 pl-10 pr-4 text-base"
               />
             </div>
-            
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div>
                 <Select name="category" defaultValue={category || "all"}>
                   <SelectTrigger className="h-12">
@@ -155,7 +153,7 @@ export default async function TutorsPage({
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
                     {categories.map((c: any) => (
-                      <SelectItem key={c.slug} value={c.slug}>
+                      <SelectItem key={c.name} value={c.name}>
                         {c.name}
                       </SelectItem>
                     ))}
@@ -163,7 +161,7 @@ export default async function TutorsPage({
                 </Select>
               </div>
               
-              <div>
+              {/* <div>
                 <Select name="rating" defaultValue={ratingFilter || "0"}>
                   <SelectTrigger className="h-12">
                     <div className="flex items-center gap-2">
@@ -179,9 +177,9 @@ export default async function TutorsPage({
                     <SelectItem value="3.0">3.0+ Stars</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               
-              <div>
+              {/* <div>
                 <Select name="experience" defaultValue={experienceFilter || "0"}>
                   <SelectTrigger className="h-12">
                     <SelectValue placeholder="Experience Level" />
@@ -194,7 +192,7 @@ export default async function TutorsPage({
                     <SelectItem value="10">10+ years</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
+              </div> */}
               
               <div className="flex gap-2">
                 <Button type="submit" className="h-12 flex-1">
@@ -242,7 +240,7 @@ export default async function TutorsPage({
               )}
               {category && category !== "all" && (
                 <Badge variant="secondary" className="gap-1 pl-2 pr-1">
-                  Category: {categories.find((c: any) => c.slug === category)?.name || category}
+                  Category: {categories.find((c: any) => c.name === category)?.name || category}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -319,7 +317,7 @@ export default async function TutorsPage({
                 className="cursor-pointer hover:bg-primary/10 hover:text-primary"
                 asChild
               >
-                <Link href={`/tutors?category=${cat.toLowerCase()}`}>
+                <Link href={`/tutors?q=&category=${cat.toLowerCase()}`}>
                   {cat}
                 </Link>
               </Badge>
@@ -339,23 +337,6 @@ export default async function TutorsPage({
           </Card>
         ) : (
           <>
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm text-muted-foreground">
-                Showing <span className="font-semibold">{finalTutors.length}</span> tutors
-              </p>
-              <Select defaultValue="recommended">
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="recommended">Recommended</SelectItem>
-                  <SelectItem value="rating">Highest Rated</SelectItem>
-                  <SelectItem value="price-low">Price: Low to High</SelectItem>
-                  <SelectItem value="price-high">Price: High to Low</SelectItem>
-                  <SelectItem value="experience">Most Experienced</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
 
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {finalTutors.map((tutor: any) => {
@@ -419,13 +400,16 @@ export default async function TutorsPage({
                       </div>
 
                       {/* Bio */}
+                     
                       <p className="mb-4 line-clamp-2 text-sm text-muted-foreground">
                         {tutor.bio || "Experienced tutor with proven track record of student success."}
                       </p>
 
                       {/* Categories/Tags */}
                       <div className="mb-4 flex flex-wrap gap-2">
+                       
                         {(tutor.categories || [{ name: "General" }]).slice(0, 3).map((cat: any, index: number) => (
+                        
                           <Badge 
                             key={`category-${tutor.id}-${index}`}
                             variant="secondary" 
@@ -504,7 +488,7 @@ export default async function TutorsPage({
             )}
 
             {/* Pagination (Simplified) */}
-            {finalTutors.length > 0 && (
+            {/* {finalTutors.length > 0 && (
               <div className="mt-8 flex items-center justify-center gap-2">
                 <Button key="prev-btn" variant="outline" disabled>
                   Previous
@@ -518,7 +502,7 @@ export default async function TutorsPage({
                   Next
                 </Button>
               </div>
-            )}
+            )} */}
 
             {/* CTA Section */}
             <Card className="mt-12 overflow-hidden border-0 bg-gradient-to-r from-primary/10 to-secondary/10">

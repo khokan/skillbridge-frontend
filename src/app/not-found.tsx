@@ -1,11 +1,11 @@
-import Link from 'next/link'
- 
+// app/not-found.tsx
 export default function NotFound() {
   return (
-    <div>
-      <h2>Not Found</h2>
-      <p>Could not find requested resource</p>
-      <Link href="/">Return Home</Link>
+    <div className="p-6">
+      <h1 className="text-2xl font-semibold">Page not found</h1>
+      <p className="text-sm text-muted-foreground">
+        The page you’re looking for doesn’t exist.
+      </p>
     </div>
-  )
+  );
 }

@@ -42,11 +42,9 @@ export default function TutorBookingsPage() {
 
       // only fetch reviews for completed
       const completed = list.filter((b) => b.status === "COMPLETED");
-      console.log(completed);
       const reviews = await Promise.all(
         completed.map(async (b) => {
           const r = await getTutorReviewByBookingId(b.id);
-          console.log(r)
           const review = r?.data?.data?.review ?? null;
           return { bookingId: b.id, review };
         })
