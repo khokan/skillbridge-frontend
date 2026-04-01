@@ -20,12 +20,18 @@ export const userService = {
                         cache: 'no-store'
                     });    
 
-                const session = await res.json();
+                if (!res.ok) {
+                    return { data: null, error: { message: "session is missing" } };
+                }
 
-                if(session === null)
-                    return {data: null, error: { message: "session is missing" }}
-                
-                return { data:session, error:null };    
+                const payload = await res.json();
+                const session = payload?.user ? payload : payload?.data ?? null;
+
+                if (!session?.user) {
+                    return { data: null, error: { message: "session is missing" } };
+                }
+
+                return { data: session, error: null };    
             }
              catch(error){
                 console.error(error)

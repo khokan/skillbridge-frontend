@@ -50,4 +50,20 @@ export const bookingService = {
       return { data: null, error: { message: "Something Went Wrong" } };
     }
   },
+
+  initiatePayment: async function (id: string) {
+    try {
+      const cookieStore = await cookies();
+      const res = await fetch(`${API_URL}/bookings/initiate-payment/${id}`, {
+        method: "POST",
+        headers: { Cookie: cookieStore.toString() },
+      });
+
+      const data = await res.json();
+      if (!res.ok) return { data: null, error: { message: data?.message ?? "Payment initiation failed" } };
+      return { data, error: null };
+    } catch {
+      return { data: null, error: { message: "Something Went Wrong" } };
+    }
+  },
 };

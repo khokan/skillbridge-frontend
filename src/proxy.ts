@@ -9,11 +9,18 @@ export async function proxy(request: NextRequest) {
 
   let isAuthenticated = false;
 
+  if (pathname === "/dashboard/payment/payment-success") {
+     const paymentSuccessUrl = new URL("/dashboard/payment/success", request.url);
+     paymentSuccessUrl.search = request.nextUrl.search;
+     return NextResponse.redirect(paymentSuccessUrl);
+    }
+
   const { data } = await userService.getSession();
+  const user = data?.user;
   // console.log("Middleware session data:", data , request.url);
 
 
-  if (data) {
+  if (user) {
     isAuthenticated = true;
   }
 
@@ -24,7 +31,7 @@ export async function proxy(request: NextRequest) {
 
   //* User is authenticated and role = TUTOR
   //* User can not visit admin-dashboard
-  if (data.user.role === Roles.TUTOR && pathname.startsWith("/dashboard")) {
+  if (user?.role === Roles.TUTOR && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/tutor/dashboard", request.url));
   }
 
@@ -32,7 +39,7 @@ export async function proxy(request: NextRequest) {
   //   return NextResponse.redirect(new URL("/dashboard", request.url));
   // }
 
-  if (data.user.role === Roles.ADMIN && pathname.startsWith("/dashboard")) {
+  if (user?.role === Roles.ADMIN && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/admin", request.url));
   }
 

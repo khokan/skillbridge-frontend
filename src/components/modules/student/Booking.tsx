@@ -4,17 +4,23 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { getBookings, cancelBooking } from "@/actions/booking.actions";
+import { getBookings, cancelBooking, initiateBookingPayment } from "@/actions/booking.actions";
 import CreateReviewDialog from "../reviews/create-review-dialog";
 
 type Booking = {
   id: string;
   status: "CONFIRMED" | "COMPLETED" | "CANCELLED";
+  paymentStatus?: "UNPAID" | "PAID";
   startTime: string;
   endTime?: string;
   tutor?: { id: string; name: string; image?: string | null } | null;
   price?: number;
   currency?: string;
+};
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
 };
 
 export default function StudentBookingsPage() {
@@ -31,8 +37,8 @@ export default function StudentBookingsPage() {
       // supports shape: { success, data: { items: [] } }
       const list = (data?.data?.items ?? []) as Booking[];
       setItems(list);
-    } catch (e: any) {
-      toast.error(e?.message ?? "Failed to load bookings");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Failed to load bookings"));
     } finally {
       setLoading(false);
     }
@@ -51,8 +57,26 @@ export default function StudentBookingsPage() {
 
       toast.success("Booking cancelled");
       await load();
-    } catch (e: any) {
-      toast.error(e?.message ?? "Cancel failed");
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Cancel failed"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const payNow = async (bookingId: string) => {
+    try {
+      setLoading(true);
+
+      const { data, error } = await initiateBookingPayment(bookingId);
+      if (error) throw error;
+
+      const paymentUrl = data?.data?.paymentUrl;
+      if (!paymentUrl) throw new Error("Payment URL not found");
+
+      window.location.href = paymentUrl;
+    } catch (error: unknown) {
+      toast.error(getErrorMessage(error, "Payment initiation failed"));
     } finally {
       setLoading(false);
     }
@@ -91,6 +115,12 @@ export default function StudentBookingsPage() {
                       {b.status}
                     </span>
 
+                    {b.paymentStatus ? (
+                      <span className="rounded-full border px-2 py-1">
+                        {b.paymentStatus}
+                      </span>
+                    ) : null}
+
                     {typeof b.price === "number" ? (
                       <span className="text-muted-foreground">
                         {b.price} {b.currency ?? "BDT"}
@@ -101,13 +131,24 @@ export default function StudentBookingsPage() {
 
                 <div className="flex flex-wrap gap-2 sm:justify-end">
                   {b.status === "CONFIRMED" && (
-                    <Button
-                      variant="destructive"
-                      disabled={loading}
-                      onClick={() => cancel(b.id)}
-                    >
-                      Cancel
-                    </Button>
+                    <>
+                      {b.paymentStatus === "UNPAID" && (
+                        <Button
+                          disabled={loading}
+                          onClick={() => payNow(b.id)}
+                        >
+                          Pay Now
+                        </Button>
+                      )}
+
+                      <Button
+                        variant="destructive"
+                        disabled={loading}
+                        onClick={() => cancel(b.id)}
+                      >
+                        Cancel
+                      </Button>
+                    </>
                   )}
 
                   {b.status === "COMPLETED" && (

@@ -18,3 +18,8 @@ export const cancelBooking = async (id: string) => {
 //   revalidateTag("bookings");
   return res;
 };
+
+export const initiateBookingPayment = async (id: string) => {
+  const res = await bookingService.initiatePayment(id);
+  return res;
+};
