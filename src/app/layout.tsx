@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 import { Footer } from "@/components/shared/footer";
 import { Toaster } from "sonner";
 import Navbar from "@/components/shared/navbar";
+import FloatingChatWidget from "@/components/FloatingChatWidget";
 
 export const metadata: Metadata = {
   title: "SkillBridge — Connect with Expert Tutors",
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <main className="min-h-[calc(100vh-170px)]">{children}</main>
         <Footer />
         <Toaster richColors  position="top-right"/>
+        <FloatingChatWidget />
       </body>
     </html>
   );
