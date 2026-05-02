@@ -323,7 +323,7 @@ export default async function HomePage() {
       </section>
 
       {/* ================= SECTION 6: WHY CHOOSE SKILLBRIDGE ================= */}
-      <section className="bg-slate-50 rounded-3xl p-8 md:p-12 space-y-10 py-8 mx-auto w-full">
+      <section className="bg-muted/30 rounded-3xl p-8 md:p-12 space-y-10 py-8 mx-auto w-full">
         <div className="text-center space-y-4">
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
             Why Choose SkillBridge?
