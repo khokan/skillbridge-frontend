@@ -6,6 +6,7 @@ export type TutorProfilePayload = {
   bio: string;
   languages: string[];
   hourlyRate: number;
+  experienceYrs: number;
 };
 
 // ✅ category types

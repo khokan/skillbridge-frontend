@@ -4,7 +4,7 @@ import { userService } from "@/services/user.service";
 import { Roles } from "@/constants/roles";
 import Image from "next/image";
 
-type Role = "student" | "tutor" | "admin";
+type Role = "STUDENT" | "TUTOR" | "ADMIN";
 
 
 function linksForRole(role?: Role) {

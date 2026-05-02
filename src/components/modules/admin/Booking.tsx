@@ -435,7 +435,7 @@ export default async function AdminBookingsPage({
         </TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
-            <DollarSign className="h-4 w-4 text-green-600" />
+            <span className="mr-2 h-4 w-4  text-green-600">৳</span>
             <span className="font-bold">{booking.price?.toFixed(2) || "0.00"}</span>
             <span className="text-sm text-muted-foreground">{booking.currency || "USD"}</span>
           </div>

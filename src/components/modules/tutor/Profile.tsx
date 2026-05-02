@@ -37,7 +37,6 @@ import {
   X,
   Loader2,
   User,
-  DollarSign,
   Languages,
   FileText,
   Tags,
@@ -68,6 +67,7 @@ interface TutorProfile {
   bio?: string | null;
   languages?: string[] | null;
   hourlyRate?: number | null;
+  experienceYrs: number | null;
   currency?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
@@ -93,12 +93,14 @@ export default function TutorProfilePage() {
     bio: "",
     languages: "", // comma separated
     hourlyRate: "",
+    experienceYrs: "",
   });
 
   const [errors, setErrors] = useState({
     bio: "",
     languages: "",
     hourlyRate: "",
+    experienceYrs: "",
     categories: "",
   });
 
@@ -181,21 +183,25 @@ export default function TutorProfilePage() {
       bio: profile.bio ?? "",
       languages: safeArray<string>(profile.languages).join(", "),
       hourlyRate: profile.hourlyRate ? String(profile.hourlyRate) : "",
+      experienceYrs:
+        profile.experienceYrs !== null && profile.experienceYrs !== undefined
+          ? String(profile.experienceYrs)
+          : "",
     });
 
-    setErrors({ bio: "", languages: "", hourlyRate: "", categories: "" });
+    setErrors({ bio: "", languages: "", hourlyRate: "", experienceYrs: "", categories: "" });
     setIsDialogOpen(true);
   };
 
   const handleCreate = () => {
-    setForm({ bio: "", languages: "", hourlyRate: "" });
+    setForm({ bio: "", languages: "", hourlyRate: "", experienceYrs: "" });
     setSelectedCategoryIds([]);
-    setErrors({ bio: "", languages: "", hourlyRate: "", categories: "" });
+    setErrors({ bio: "", languages: "", hourlyRate: "", experienceYrs: "", categories: "" });
     setIsDialogOpen(true);
   };
 
   const validateForm = () => {
-    const nextErr = { bio: "", languages: "", hourlyRate: "", categories: "" };
+    const nextErr = { bio: "", languages: "", hourlyRate: "", experienceYrs: "", categories: "" };
     let ok = true;
 
     if (!form.bio.trim()) {
@@ -211,6 +217,12 @@ export default function TutorProfilePage() {
 
     if (!selectedCategoryIds.length) {
       nextErr.categories = "Select at least one category";
+      ok = false;
+    }
+
+    const experience = Number(form.experienceYrs);
+    if (!form.experienceYrs || Number.isNaN(experience) || experience < 0) {
+      nextErr.experienceYrs = "Valid experience is required";
       ok = false;
     }
 
@@ -235,6 +247,7 @@ export default function TutorProfilePage() {
           .map((s) => s.trim())
           .filter(Boolean),
         hourlyRate: Number(form.hourlyRate),
+        experienceYrs: Number(form.experienceYrs),
       };
 
       // 1) create/update profile
@@ -424,7 +437,7 @@ export default function TutorProfilePage() {
                 <TableRow>
                   <TableCell className="font-medium">
                     <div className="flex items-center">
-                      <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />
+                     <span className="mr-2 h-4 w-4 text-muted-foreground">৳</span>
                       Hourly Rate
                     </div>
                   </TableCell>
@@ -443,6 +456,15 @@ export default function TutorProfilePage() {
                     </div>
                   </TableCell>
                   <TableCell className="font-mono text-sm">{profile?.userId || "N/A"}</TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell className="font-medium">Experience</TableCell>
+                  <TableCell>
+                    <Badge variant="outline" className="text-sm">
+                      {profile?.experienceYrs ?? 0} year{profile?.experienceYrs === 1 ? "" : "s"}
+                    </Badge>
+                  </TableCell>
                 </TableRow>
 
                 <TableRow>
@@ -546,7 +568,7 @@ export default function TutorProfilePage() {
                 Hourly Rate (BDT) <span className="text-destructive">*</span>
               </Label>
               <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <span className="absolute left-3 top-1 mr-2 h-4 w-4 text-muted-foreground">৳</span>
                 <Input
                   id="hourlyRate"
                   type="number"
@@ -559,6 +581,24 @@ export default function TutorProfilePage() {
                 />
               </div>
               {errors.hourlyRate && <p className="text-sm text-destructive">{errors.hourlyRate}</p>}
+            </div>
+
+            {/* Experience */}
+            <div className="space-y-2">
+              <Label htmlFor="experienceYrs">
+                Experience (years) <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="experienceYrs"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="e.g., 3"
+                value={form.experienceYrs}
+                onChange={(e) => setForm({ ...form, experienceYrs: e.target.value })}
+                className={errors.experienceYrs ? "border-destructive" : ""}
+              />
+              {errors.experienceYrs && <p className="text-sm text-destructive">{errors.experienceYrs}</p>}
             </div>
           </div>
 
