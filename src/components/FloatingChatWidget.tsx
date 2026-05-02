@@ -19,7 +19,7 @@ type AnswerRecord = Record<string, unknown>;
 const starterPrompts = [
   "Show tutors with strong reviews in math",
   "Show tutors with strong reviews in english",
-  "Which tutors are booked or not available?",
+  "show tutors availability for this week",
 ];
 
 const buildInitialMessages = (): ChatMessage[] => [
@@ -35,6 +35,14 @@ const FloatingChatWidget = () => {
   useEffect(() => {
     if (isOpen) scrollBottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [isOpen, messages]);
+
+  useEffect(() => {
+    const handleOpenChat = () => setIsOpen(true);
+
+    window.addEventListener("skillbridge:open-ai-chat", handleOpenChat);
+
+    return () => window.removeEventListener("skillbridge:open-ai-chat", handleOpenChat);
+  }, []);
 
   const appendMessage = (m: ChatMessage) => setMessages((s) => [...s, m]);
   const idRef = useRef(0);
@@ -196,7 +204,6 @@ const FloatingChatWidget = () => {
               </div>
 
               <div className="flex gap-2">
-                <Button size="xs" variant="outline" onClick={handleIngest}>Sync Profiles</Button>
                 <Button type="button" variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Close">
                   <X className="h-4 w-4" />
                 </Button>

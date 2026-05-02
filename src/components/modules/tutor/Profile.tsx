@@ -130,6 +130,7 @@ export default function TutorProfilePage() {
 
       setCategories(safeArray<Category>(catItems));
 
+      console.log("profile", profRes);
       // ---- profile ----
       if (profRes?.error) {
         const msg = (profRes.error.message ?? "").toLowerCase();
